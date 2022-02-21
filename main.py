@@ -1,77 +1,50 @@
 import numpy as np 
+import json
 import cv2
 
-def nothing(x):
-    pass
-
 def update_trackbars(window_name, trackbars):
+    """
+        Read values from trackbars
+    """
+
     for trackbar in trackbars:
         trackbars[trackbar]['value'] = cv2.getTrackbarPos(trackbar, window_name)
     
     return trackbars
 
 window_name = 'Test'
-cv2.namedWindow(window_name)
-image = cv2.imread("potholes_5.jpg")
+
+# Read and resize image
+
+image = cv2.imread("examples/1.jpg")
 image = cv2.resize(image, (420, 300))
+cv2.namedWindow(window_name)
+
+# Create ROI 
 
 polygon = np.array([[0, int(image.shape[0] * 0.6)], [int(image.shape[1] * 0.33), int(image.shape[0] * 0.4)],
                     [int(image.shape[1] * 0.67), int(image.shape[0] * 0.4)], [image.shape[1], int(image.shape[0] * 0.8)],
                     [image.shape[1], 0], [0, 0]])
 
+# Extract ROI from image
 
 image = cv2.fillPoly(image, pts = [polygon], color = (0, 0, 0))
 
-trackbars = {
-    'HMin': {
-        'max': 179,
-        'start_value': 0,
-        'value': None
-    },
-    'SMin': {
-        'max': 255,
-        'start_value': 2,
-        'value': None
-    },
-    'VMin': {
-        'max': 255,
-        'start_value': 0,
-        'value': None
-    },
-    'HMax': {
-        'max': 179,
-        'start_value': 54,
-        'value': None
-    },
-    'SMax': {
-        'max': 255,
-        'start_value': 105,
-        'value': None
-    },
-    'VMax': {
-        'max': 255,
-        'start_value': 98,
-        'value': None
-    },
-    'kernel': {
-        'max': 20,
-        'start_value': 0,
-        'value': None
-    },
-    'threshold': {
-        'max': 20,
-        'start_value': 10,
-        'value': None
-    }
-}
+# Read trackbar config and create trackbards on given window
 
-for trackbar in trackbars:
-    cv2.createTrackbar(trackbar, window_name, trackbars[trackbar]['start_value'], trackbars[trackbar]['max'], nothing)
+with open('config.json', 'r') as config:
+    trackbars = json.load(config)
 
+    for trackbar in trackbars:
+        cv2.createTrackbar(trackbar, window_name, trackbars[trackbar]['start_value'], trackbars[trackbar]['max'], lambda x: None)
 
 while True:
+        # Update trackbar values and create kernel matrix
+
         trackbars = update_trackbars(window_name, trackbars)
         kernel = (3 + trackbars['kernel']['value'] * 2, 3 + trackbars['kernel']['value'] * 2)
+
+        # Create HSV mask and apply it on image
 
         lower = np.array([trackbars['HMin']['value'], trackbars['SMin']['value'], trackbars['VMin']['value']])
         upper = np.array([trackbars['HMax']['value'], trackbars['SMax']['value'], trackbars['VMax']['value']])
@@ -79,6 +52,8 @@ while True:
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower, upper)
         result = cv2.bitwise_and(image, image, mask=mask)
+
+        # Convert image to gray and apply adaptive threshold after bluring the image
 
         gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, kernel, 0)

@@ -1,0 +1,42 @@
+{
+    "HMin": {
+        "max": 179,
+        "start_value": 0,
+        "value": null
+    },
+    "SMin": {
+        "max": 255,
+        "start_value": 0,
+        "value": null
+    },
+    "VMin": {
+        "max": 255,
+        "start_value": 0,
+        "value": null
+    },
+    "HMax": {
+        "max": 179,
+        "start_value": 28,
+        "value": null
+    },
+    "SMax": {
+        "max": 255,
+        "start_value": 53,
+        "value": null
+    },
+    "VMax": {
+        "max": 255,
+        "start_value": 50,
+        "value": null
+    },
+    "kernel": {
+        "max": 20,
+        "start_value": 0,
+        "value": null
+    },
+    "threshold": {
+        "max": 20,
+        "start_value": 10,
+        "value": null
+    }
+}
