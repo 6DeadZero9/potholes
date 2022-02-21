@@ -1,6 +1,8 @@
 import numpy as np 
+import argparse
 import json
 import cv2
+from sqlalchemy import true
 
 def update_trackbars(window_name, trackbars):
     """
@@ -12,13 +14,29 @@ def update_trackbars(window_name, trackbars):
     
     return trackbars
 
-window_name = 'Test'
+my_parser = argparse.ArgumentParser(description='')
+my_parser.add_argument('-p',
+                       '--path',
+                       action='store',
+                       type=str,
+                       required=True,
+                       help='Image path')
+
+my_parser.add_argument('-n',
+                       '--window_name',
+                       action='store',
+                       type=str,
+                       default='Test',
+                       help='Name of the opencv window')
+
+args = my_parser.parse_args()
+args_dict = vars(args)
 
 # Read and resize image
 
-image = cv2.imread("examples/1.jpg")
+image = cv2.imread(args_dict['path'])
 image = cv2.resize(image, (420, 300))
-cv2.namedWindow(window_name)
+cv2.namedWindow(args_dict['window_name'])
 
 # Create ROI 
 
@@ -36,12 +54,12 @@ with open('config.json', 'r') as config:
     trackbars = json.load(config)
 
     for trackbar in trackbars:
-        cv2.createTrackbar(trackbar, window_name, trackbars[trackbar]['start_value'], trackbars[trackbar]['max'], lambda x: None)
+        cv2.createTrackbar(trackbar, args_dict['window_name'], trackbars[trackbar]['start_value'], trackbars[trackbar]['max'], lambda x: None)
 
 while True:
         # Update trackbar values and create kernel matrix
 
-        trackbars = update_trackbars(window_name, trackbars)
+        trackbars = update_trackbars(args_dict['window_name'], trackbars)
         kernel = (3 + trackbars['kernel']['value'] * 2, 3 + trackbars['kernel']['value'] * 2)
 
         # Create HSV mask and apply it on image
@@ -62,7 +80,7 @@ while True:
         gray = cv2.merge((gray, gray, gray))
         combined = np.hstack([image, result, gray])
 
-        cv2.imshow(window_name, combined)
+        cv2.imshow(args_dict['window_name'], combined)
         
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
